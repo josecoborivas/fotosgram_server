@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { Usuario } from '../models/usuario.model';
 import bcrypt from 'bcrypt';
+import Token from '../classes/token';
 
 
 const usuariosRoutes = Router();
@@ -10,21 +11,29 @@ const usuariosRoutes = Router();
 usuariosRoutes.post('/login', (req: Request, res: Response) => {
     const body = req.body;
 
-    Usuario.findOne({ email: body.email }, (error, userDB) => {
+    Usuario.findOne({ email: body.email }, (error, userDb) => {
         if(error) throw error;
-
-        if(!userDB){
-            return res.json({
-                ok: false,
-                mensaje: 'Usuario/Contraseña incorrectos'
-            });
+        
+        if(!userDb){
+        return res.json({
+            ok: false,
+            mensaje: 'Usuario/Contraseña incorrectos'
+        });
         }
 
-        if(userDB.passwordCompare(body.password)) {
+        
+        if(userDb.passwordCompare(body.password)) {
+            const userToken = Token.getJwtToken({
+                _id: userDb._id,
+                nombre: userDb.nombre,
+                email: userDb.email,
+                avatar: userDb.avatar
+            });
+
             return res.json({
                 ok: true,
-                token: 'FDSABFDHTERTDSBFGJTUTYSGFDS',
-                user: userDB
+                token: userToken,
+                user: userDb
             });
         } else {
             return res.json({
@@ -50,10 +59,19 @@ usuariosRoutes.post('/create', (req: Request, res: Response) => {
     };
 
     Usuario.create( user ).then( userDb => {
-        res.json({
+        const userToken = Token.getJwtToken({
+            _id: userDb._id,
+            nombre: userDb.nombre,
+            email: userDb.email,
+            avatar: userDb.avatar
+        });
+        
+        return res.json({
             ok: true,
+            token: userToken,
             user: userDb
         });
+       
     }).catch( err => {
         res.json({
             ok: false,
