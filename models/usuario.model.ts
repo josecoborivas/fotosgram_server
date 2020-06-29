@@ -22,7 +22,7 @@ const usuarioSchema = new Schema({
 
 interface IUsuario extends Document {
     nombre: string;
-    avatar: string;
+    avatar?: string;
     email: string;
     password: string;
 }
