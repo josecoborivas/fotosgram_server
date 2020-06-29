@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { Usuario } from '../models/usuario.model';
 import bcrypt from 'bcrypt';
 import Token from '../classes/token';
+import { verificarToken } from '../middlewares/autenticacion';
 
 
 const usuariosRoutes = Router();
@@ -11,10 +12,10 @@ const usuariosRoutes = Router();
 usuariosRoutes.post('/login', (req: Request, res: Response) => {
     const body = req.body;
 
-    Usuario.findOne({ email: body.email }, (error, userDb) => {
+    Usuario.findOne({ email: body.email }, (error, userDB) => {
         if(error) throw error;
-        
-        if(!userDb){
+
+        if(!userDB){
         return res.json({
             ok: false,
             mensaje: 'Usuario/Contraseña incorrectos'
@@ -22,18 +23,18 @@ usuariosRoutes.post('/login', (req: Request, res: Response) => {
         }
 
         
-        if(userDb.passwordCompare(body.password)) {
+        if(userDB.passwordCompare(body.password)) {
             const userToken = Token.getJwtToken({
-                _id: userDb._id,
-                nombre: userDb.nombre,
-                email: userDb.email,
-                avatar: userDb.avatar
+                _id: userDB._id,
+                nombre: userDB.nombre,
+                email: userDB.email,
+                avatar: userDB.avatar
             });
 
             return res.json({
                 ok: true,
                 token: userToken,
-                user: userDb
+                user: userDB
             });
         } else {
             return res.json({
@@ -58,18 +59,18 @@ usuariosRoutes.post('/create', (req: Request, res: Response) => {
         avatar   : req.body.avatar
     };
 
-    Usuario.create( user ).then( userDb => {
+    Usuario.create( user ).then( userDB => {
         const userToken = Token.getJwtToken({
-            _id: userDb._id,
-            nombre: userDb.nombre,
-            email: userDb.email,
-            avatar: userDb.avatar
+            _id: userDB._id,
+            nombre: userDB.nombre,
+            email: userDB.email,
+            avatar: userDB.avatar
         });
         
         return res.json({
             ok: true,
             token: userToken,
-            user: userDb
+            user: userDB
         });
        
     }).catch( err => {
@@ -80,6 +81,42 @@ usuariosRoutes.post('/create', (req: Request, res: Response) => {
     });
     
     
+});
+
+
+//Update
+usuariosRoutes.post('/update', verificarToken,  (req: any, res: Response) =>{
+
+    const user = {
+        nombre   : req.body.nombre || req.usuario.nombre,
+        email    : req.body.email || req.usuario.email,
+        avatar   : req.body.avatar || req.usuario.avatar
+    };
+
+    Usuario.findByIdAndUpdate(req.usuario._id, user, { new: true }, (error, userDB) => {
+        if(error) throw error;
+
+        if(!userDB) {
+            res.json({
+                ok: false,
+                mensaje: 'No existe el usuario con ese ID'
+            });
+        } else {
+
+            const userToken = Token.getJwtToken({
+                _id: userDB._id,
+                nombre: userDB.nombre,
+                email: userDB.email,
+                avatar: userDB.avatar
+            });
+            
+            return res.json({
+                ok: true,
+                token: userToken,
+                user: userDB
+            });
+        }
+    });
 });
 
 export default usuariosRoutes;

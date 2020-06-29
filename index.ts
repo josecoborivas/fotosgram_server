@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 const server = new Server();
 
 
-//MIDLEWARES
+//MIDDLEWARES
 
 
 //Body Parser
