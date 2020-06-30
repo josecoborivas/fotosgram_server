@@ -1,6 +1,7 @@
-import { Router, Response } from 'express'
+import { Router, Response, Request } from 'express'
 import { verificarToken } from '../middlewares/autenticacion';
 import { Post } from '../models/post.model';
+import { FileUpload } from '../interfaces/file-upload';
 
 const postRouter = Router();
 
@@ -46,6 +47,37 @@ postRouter.post('/', [verificarToken], (req: any, res: Response)=> {
         res.json(error);
     });
 
+});
+
+//Servicio para subir archivos
+postRouter.post('/upload', [verificarToken], (req: any, res: Response) => {
+    if(!req.files) {
+        res.status(400).json({
+            ok: false,
+            mensaje: 'No se subio ningun archivo'
+        });
+    }
+
+    const file: FileUpload = req.files.image;
+
+    if(!file){
+        res.status(400).json({
+            ok: false,
+            mensaje: 'No se subio ningun archivo -- image'
+        });
+    }
+
+    if(!file.mimetype.includes('image')){
+        res.status(400).json({
+            ok: false,
+            mensaje: 'Lo que subio no es una imagen'
+        });
+    }
+
+    res.json({
+        ok: true,
+        file: file.mimetype
+    });
 });
 
 
