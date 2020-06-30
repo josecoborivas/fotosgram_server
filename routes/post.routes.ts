@@ -87,7 +87,15 @@ postRouter.post('/upload', [verificarToken], async (req: any, res: Response) => 
     });
 });
 
+//Obtener una imagen
+postRouter.get('/imagen/:userId/:img', (req: any, res: Response) => {
+    const userId = req.params.userId;
+    const img = req.params.img;
 
+    const pathImagen = fileSystem.getImagenUrl(userId, img);
+
+    res.sendFile(pathImagen);
+});
 
 
 

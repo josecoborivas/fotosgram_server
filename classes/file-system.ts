@@ -79,4 +79,16 @@ export default class FileSystem {
 
         return imagenesTemp;
     }
+
+    getImagenUrl(userId: string, img: string) {
+        const pathImagen = path.resolve( __dirname, '../uploads/', userId, 'posts', img);
+
+        const existe = fs.existsSync(pathImagen);
+
+        if(!existe) {
+            return path.resolve(__dirname, '../assets/400x250.jpg');
+        }
+
+        return pathImagen;
+    }
 }
