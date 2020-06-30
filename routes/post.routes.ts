@@ -2,9 +2,10 @@ import { Router, Response, Request } from 'express'
 import { verificarToken } from '../middlewares/autenticacion';
 import { Post } from '../models/post.model';
 import { FileUpload } from '../interfaces/file-upload';
+import FileSystem from '../classes/file-system';
 
 const postRouter = Router();
-
+const fileSystem = new FileSystem();
 
 
 //Obtener Post por pagina
@@ -36,6 +37,10 @@ postRouter.post('/', [verificarToken], (req: any, res: Response)=> {
     const body = req.body;
     body.usuario = req.usuario._id;
 
+    const imagenes = fileSystem.imagenesDeTempHaciaPost(req.usuario._id);
+    body.imgs = imagenes;
+
+
     Post.create(body).then( async postDB => {
 
         await postDB.populate('usuario', '-password').execPopulate();
@@ -50,7 +55,7 @@ postRouter.post('/', [verificarToken], (req: any, res: Response)=> {
 });
 
 //Servicio para subir archivos
-postRouter.post('/upload', [verificarToken], (req: any, res: Response) => {
+postRouter.post('/upload', [verificarToken], async (req: any, res: Response) => {
     if(!req.files) {
         res.status(400).json({
             ok: false,
@@ -73,6 +78,8 @@ postRouter.post('/upload', [verificarToken], (req: any, res: Response) => {
             mensaje: 'Lo que subio no es una imagen'
         });
     }
+
+    await fileSystem.guardarImagenTemporal(file, req.usuario._id);
 
     res.json({
         ok: true,
