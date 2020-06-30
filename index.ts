@@ -1,7 +1,9 @@
 import Server from './classes/server';
-import usuariosRoutes from './routes/usuarios.routes';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+
+import usuariosRoutes from './routes/usuarios.routes';
+import postRouter from './routes/post.routes';
 
 const server = new Server();
 
@@ -16,6 +18,8 @@ server.app.use( bodyParser.json());
 
 //Rutas de mi App
 server.app.use('/user/', usuariosRoutes);
+
+server.app.use('/post/', postRouter);
 
 //Conectar Base de Datos Mongo
 mongoose.connect('mongodb://localhost:27017/fotosgram', { useNewUrlParser: true, useCreateIndex: true }, err => {
